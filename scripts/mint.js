@@ -45,3 +45,5 @@ async function mintNFT() {
       console.log("Promise failed:", err);
     });
 }
+
+mintNFT();
