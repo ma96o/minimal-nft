@@ -10,48 +10,77 @@ const PRIVATE_KEY = env.PRIVATE_KEY;
 const PROVIDER_URL = "http://localhost:8545";
 
 async function mintNFT() {
-  const provider = ethers.getDefaultProvider(PROVIDER_URL);
-  const signer = provider.getSigner();
-  const contract = require("../artifacts/contracts/MinimalNFT.sol/MinimalNFT.json");
-  const nftContract = new ethers.Contract(
-    CONTRACT_ADDRESS,
-    contract.abi,
-    signer
-    // provider
-  );
+  try {
+    const provider = ethers.getDefaultProvider(PROVIDER_URL);
+    const signer = provider.getSigner();
+    const contractJson = require("../artifacts/contracts/MinimalNFT.sol/MinimalNFT.json");
+    const abi = contractJson.abi;
+    // const iface = new ethers.utils.interface(abi);
+    const contractInstance = new ethers.Contract(
+      CONTRACT_ADDRESS,
+      abi,
+      signer
+      // provider
+    );
+    const gasPrice = 400000;
+    const gasLimit = 500000;
+    const wallet = await new ethers.Wallet(PRIVATE_KEY, provider);
 
-  console.log("------PUBLIC_KEY----------");
-  console.log(PUBLIC_KEY);
-  console.log("------PRIVATE_KEY----------");
-  console.log(PRIVATE_KEY);
+    const nonce = await signer.getTransactionCount();
+    const tx = {
+      nonce,
+      //   gasLimit: "0x5208",
+      gasLimit: 6721975,
+      //   gasLimit: 50000,
+      //   gasLimit,
+      //   gasPrice,
+      //   data: iface.encodeFunctionData("mint", PUBLIC_KEY),
+    };
+    let rawTxn = await contractInstance.populateTransaction.mint(
+      PUBLIC_KEY,
+      tx
+    );
+    const signedTxn = await wallet.sendTransaction(rawTxn);
+    let reciept = (await signedTxn).wait();
+    if (reciept) {
+      console.log(
+        "Transaction is successful!!!" + "\n" + "Transaction Hash:",
+        (await signedTxn).hash +
+          "\n" +
+          "Block Number:" +
+          (await reciept).blockNumber +
+          "\n" +
+          "Navigate to https://polygonscan.com/tx/" +
+          (await signedTxn).hash,
+        "to see your transaction"
+      );
+    } else {
+      console.log("Error submitting transaction");
+    }
+  } catch (e) {
+    console.log("error mint()", e);
+  }
 
-  const nonce = await provider.getTransactionCount(PUBLIC_KEY, "latest");
-  const tx = {
-    nonce,
-    gasPrice: 500000,
-    data: nftContract.methods.mint(PUBLIC_KEY).encodeABI(),
-  };
-
-  const signPromise = signer.signTransaction(tx, PRIVATE_KEY);
-  signPromise
-    .then((signedTx) => {
-      const tx = signedTx.rawTransaction;
-      if (tx !== undefined) {
-        signer.sendTransaction(tx, function (err, hash) {
-          if (!err) {
-            console.log("The hash of your transaction is: ", hash);
-          } else {
-            console.log(
-              "Something went wrong when submitting your transaction:",
-              err
-            );
-          }
-        });
-      }
-    })
-    .catch((err) => {
-      console.log("Promise failed:", err);
-    });
+  //   const signPromise = signer.signTransaction(tx, PRIVATE_KEY);
+  //   signPromise
+  //     .then((signedTx) => {
+  //       const tx = signedTx.rawTransaction;
+  //       if (tx !== undefined) {
+  //         signer.sendTransaction(tx, function (err, hash) {
+  //           if (!err) {
+  //             console.log("The hash of your transaction is: ", hash);
+  //           } else {
+  //             console.log(
+  //               "Something went wrong when submitting your transaction:",
+  //               err
+  //             );
+  //           }
+  //         });
+  //       }
+  //     })
+  //     .catch((err) => {
+  //       console.log("Promise failed:", err);
+  //     });
 }
 
 mintNFT();
