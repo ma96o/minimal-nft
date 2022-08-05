@@ -1,9 +1,12 @@
 // import { ethers } from "ethers";
 const { ethers } = require("ethers");
+require("dotenv").config();
+
+const env = process.env;
 
 const CONTRACT_ADDRESS = "0x5fbdb2315678afecb367f032d93f642f64180aa3";
-const PUBLIC_KEY = process.env.PUBLIC_KEY;
-const PRIVATE_KEY = process.env.PRIVATE_KEY;
+const PUBLIC_KEY = env.PUBLIC_KEY;
+const PRIVATE_KEY = env.PRIVATE_KEY;
 const PROVIDER_URL = "http://localhost:8545";
 
 async function mintNFT() {
@@ -16,6 +19,11 @@ async function mintNFT() {
     signer
     // provider
   );
+
+  console.log("------PUBLIC_KEY----------");
+  console.log(PUBLIC_KEY);
+  console.log("------PRIVATE_KEY----------");
+  console.log(PRIVATE_KEY);
 
   const nonce = await provider.getTransactionCount(PUBLIC_KEY, "latest");
   const tx = {
